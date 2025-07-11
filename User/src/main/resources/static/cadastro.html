@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Cadastro de Usuário</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+<style>
+    body, html {
+            background: url('/public/imagemCadastro.png') no-repeat center;
+        background-size: cover;
+        min-height: 100vh;
+        height: 100%;
+    }
+.centraliza {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .card {
+            padding: 2rem;
+            border-radius: 2rem;
+            box-shadow: 0 4px 32px 0 rgba(0,0,0,0.55);
+            background: rgba(25, 27, 31, 0.92); /* fundo escuro semi-transparente */
+            border: 2px solid #20232a;
+            color: #fff;
+            min-width: 340px;
+            max-width: 350px;
+        }
+        .form-label {
+            color: #80FF44; /* verde igual aos hexágonos */
+            font-weight: 600;
+        }
+        .form-control {
+            background: #21252b;
+            border: 1px solid #555;
+            color: #fff;
+        }
+        .form-control:focus {
+            border-color: #00bfff;
+            box-shadow: 0 0 0 0.1rem #00bfff88;
+            background: #23272f;
+            color: #fff;
+        }
+        .btn-success {
+            background-color: #29b933; /* verde dos hexágonos */
+            border-color: #23a12a;
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+        .btn-success:hover {
+            background-color: #23a12a;
+            border-color: #1e8e23;
+        }
+        a.btn-link, a.btn-link:visited {
+            color: #00bfff;
+            text-decoration: underline;
+        }
+        a.btn-link:hover {
+            color: #ffa600;
+        }
+        select.form-control, select {
+            background-color: #23272f !important;
+            color: #fff !important;
+            border: 1px solid #00bfff !important;
+            font-size: 1.09rem;
+            font-weight: bold;
+            letter-spacing: 0.5px;
+        }
+        option {
+            background: #23272f !important;
+            color: #fff !important;
+            font-weight: bold;
+            font-size: 1.09rem;
+            letter-spacing: 0.5px;
+        }
+        select.form-control:focus, select:focus {
+            color: #fff !important;
+            background-color: #23272f !important;
+        }
+        select.form-control option:checked,
+        select option:checked {
+            color: #fff !important;
+            background: #23272f !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="centraliza">
+        <div class="card">
+            <h2 class="mb-4 text-center">Cadastro de Usuário</h2>
+            <form id="usuarioForm">
+                <div class="mb-3">
+                    <label for="nome" class="form-label">Nome:</label>
+                    <input type="text" class="form-control" id="nome" required>
+                </div>
+                <div class="mb-3">
+                    <label for="email" class="form-label">E-mail:</label>
+                    <input type="email" class="form-control" id="email" required>
+                </div>
+                <div class="mb-3">
+                    <label for="senha" class="form-label">Senha:</label>
+                    <input type="password" class="form-control" id="senha" required>
+                </div>
+                <div class="mb-3">
+                    <label for="perfis" class="form-label">Perfil:</label>
+                    <select class="form-control" id="perfis" required>
+                        <option value="">Selecione...</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary w-100">Cadastrar</button>
+            </form>
+            <div id="mensagem" class="mt-3 text-center"></div>
+        </div>
+    </div>
+    <script>
+        // Carrega os perfis no select
+        window.onload = function() {
+            fetch('http://localhost:8080/perfis')
+                .then(response => response.json())
+                .then(data => {
+                    const selectPerfis = document.getElementById('perfis');
+                    data.forEach(perfil => {
+                        const option = document.createElement('option');
+                        option.value = perfil.idPerfil;
+                        option.textContent = perfil.nome;
+                        selectPerfis.appendChild(option);
+                    });
+                })
+                .catch(() => {
+                    document.getElementById('mensagem').innerHTML =
+                        '<span class="text-danger">Erro ao carregar perfis.</span>';
+                });
+        };
+
+        document.getElementById('usuarioForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const perfilSelecionado = document.getElementById('perfis').value;
+            if (!perfilSelecionado) {
+                document.getElementById('mensagem').innerHTML =
+                    '<span class="text-danger">Selecione um perfil!</span>';
+                return;
+            }
+            const usuario = {
+                nome: document.getElementById('nome').value,
+                email: document.getElementById('email').value,
+                senha: document.getElementById('senha').value,
+                perfis: [parseInt(perfilSelecionado)]
+            };
+            fetch('http://localhost:8080/api/usuario', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(usuario)
+            })
+            .then(response => {
+                if (response.ok) {
+                    document.getElementById('mensagem').innerHTML =
+                        '<span class="text-success">Usuário cadastrado com sucesso! Redirecionando...</span>';
+                    document.getElementById('usuarioForm').reset();
+                    setTimeout(function() {
+                        window.location.href = "listagem.html";
+                    }, 1000);
+                } else {
+                    return response.text().then(texto => {
+                        throw new Error(texto);
+                    });
+                }
+            })
+            .catch(error => {
+                document.getElementById('mensagem').innerHTML =
+                    '<span class="text-danger">Erro: ' + error.message + '</span>';
+            });
+        });
+    </script>
+</body>
+</html>

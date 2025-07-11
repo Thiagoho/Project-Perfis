@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard - Usuários por Perfil</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+body {
+    background: #21242b;
+    min-height: 100vh;
+    margin: 0;
+}
+.dashboard-container {
+    width: 100vw;
+    min-height: 100vh;
+    padding: 40px 0 0 0;
+    position: relative;
+}
+.cards-right {
+    display: flex;
+    gap: 32px;
+    position: absolute;
+    top: 38px;
+    right: 48px; /* Afasta da lateral */
+}
+.card-dashboard {
+    background: #fff;
+    border-radius: 14px;
+    min-width: 220px;
+    min-height: 115px;
+    padding: 12px 20px;
+    text-align: center;
+    box-shadow: 0 2px 18px 0 rgba(0,0,0,0.13);
+    border: 3px solid transparent;
+    margin-bottom: 14px;
+}
+.card-dashboard.admin   { border-color: #29b933; }
+.card-dashboard.editor  { border-color: #00bfff; }
+.card-dashboard.visitante { border-color: #ffa600; }
+.card-dashboard .titulo {
+    color: #21242b;
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-bottom: 5px;
+}
+.card-dashboard .numero {
+    font-size: 2.9rem;
+    font-weight: bold;
+    color: #21242b;
+}
+.titulo-dashboard {
+    text-align: center;
+    color: #fff;
+    font-size: 2.2rem;
+    margin-top: 110px;
+    margin-bottom: 30px;
+    font-weight: 800;
+    letter-spacing: 0.01em;
+}
+
+    </style>
+</head>
+<body>
+    <div class="container py-5">
+        <h2 class="text-center mb-4">Dashboard de Perfis de Usuários</h2>
+        <div class="row justify-content-center mb-4">
+            <div class="col-md-3">
+                <div class="card admin-card text-center">
+                    <div class="card-body">
+                        <h5 class="card-title">Administradores</h5>
+                        <span id="adminCount" class="display-4">0</span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card editor-card text-center">
+                    <div class="card-body">
+                        <h5 class="card-title">Editores</h5>
+                        <span id="editorCount" class="display-4">0</span>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card visitante-card text-center">
+                    <div class="card-body">
+                        <h5 class="card-title">Visitantes</h5>
+                        <span id="visitanteCount" class="display-4">0</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <canvas id="perfilChart"></canvas>
+            </div>
+        </div>
+        <div class="text-center mt-5">
+            <a href="listagem.html" class="btn btn-outline-light">Voltar para Listagem</a>
+        </div>
+    </div>
+    <script>
+        // Busca os dados do backend
+        fetch('http://localhost:8080/api/usuario/dashboard/usuarios-por-perfil')
+            .then(res => res.json())
+            .then(data => {
+                // Atualiza cards
+                document.getElementById('adminCount').textContent = data.admin || 0;
+                document.getElementById('editorCount').textContent = data.editor || 0;
+                document.getElementById('visitanteCount').textContent = data.visitante || 0;
+
+                // Gráfico
+                const ctx = document.getElementById('perfilChart').getContext('2d');
+                new Chart(ctx, {
+                    type: 'pie',
+                    data: {
+                        labels: ['Admin', 'Editor', 'Visitante'],
+                        datasets: [{
+                            data: [data.admin, data.editor, data.visitante],
+                            backgroundColor: [
+                                '#29b933',
+                                '#00bfff',
+                                '#ffa600'
+                            ]
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: { position: 'bottom', labels: { color: "#fff", font: { weight: 600 } } },
+                            title: { display: true, text: 'Distribuição de Perfis', color: "#fff", font: { size: 20 } }
+                        }
+                    }
+                });
+            })
+            .catch(() => {
+                document.getElementById('adminCount').textContent = '!';
+                document.getElementById('editorCount').textContent = '!';
+                document.getElementById('visitanteCount').textContent = '!';
+            });
+    </script>
+</body>
+</html>
